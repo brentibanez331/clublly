@@ -1,9 +1,23 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:clublly/main.dart';
-import 'package:clublly/screens/login_screen.dart';
+import 'package:clublly/views/login_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> signOut() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn();
+
+    try {
+      await googleSignIn.disconnect();
+      await supabase.auth.signOut();
+    } catch (error) {
+      log('Error signing out: ${error}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +30,8 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () async {
-              await supabase.auth.signOut();
+              signOut();
+
               if (context.mounted) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -24,7 +39,7 @@ class ProfileScreen extends StatelessWidget {
               }
             },
             child: const Text('Sign out'),
-          )
+          ),
         ],
       ),
       body: Center(
