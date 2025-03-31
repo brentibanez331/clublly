@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final event = data.event;
       if (event == AuthChangeEvent.signedIn) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const Onboarding()),
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
         );
       }
     });
