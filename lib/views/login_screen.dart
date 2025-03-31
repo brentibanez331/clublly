@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:clublly/views/dashboard.dart';
 import 'package:clublly/views/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final event = data.event;
       if (event == AuthChangeEvent.signedIn) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          MaterialPageRoute(builder: (context) => const Dashboard()),
         );
       }
     });
