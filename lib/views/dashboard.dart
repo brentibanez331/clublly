@@ -1,3 +1,9 @@
+import 'package:clublly/services/utils.dart';
+import 'package:clublly/views/pages/cart_page.dart';
+import 'package:clublly/views/pages/categories_page.dart';
+import 'package:clublly/views/pages/home_page.dart';
+import 'package:clublly/views/pages/products_page.dart';
+import 'package:clublly/views/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatefulWidget {
@@ -8,12 +14,91 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  int currentPageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     // Do an IndexedStack.
     // This would hold all of the pages and display the Navbar.
     // Use the IndexedStack Widget body and bottomNavigationBar within Scaffold
 
-    return Scaffold(body: Text("Dashboard"));
+    return SafeArea(
+      child: Scaffold(
+        body: IndexedStack(
+          index: currentPageIndex,
+          children: [
+            ProductsPage(),
+            CategoriesPage(),
+            HomePage(),
+            CartPage(),
+            ProfilePage(),
+          ],
+        ),
+        bottomNavigationBar: NavigationBarTheme(
+          data: NavigationBarThemeData(
+            indicatorColor: Colors.white,
+            labelTextStyle: WidgetStatePropertyAll<TextStyle>(
+              TextStyle(color: Colors.black),
+            ),
+          ),
+          child: NavigationBar(
+            backgroundColor: Colors.white,
+            onDestinationSelected: (index) {
+              setState(() {
+                currentPageIndex = index;
+              });
+            },
+            selectedIndex: currentPageIndex,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.shopping_bag_outlined, color: Colors.black),
+                label: 'Shop',
+                selectedIcon: Icon(
+                  Icons.shopping_bag_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.library_books_outlined, color: Colors.black),
+                label: 'Categories',
+                selectedIcon: Icon(
+                  Icons.library_books_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined, color: Colors.black),
+                label: 'Home',
+                selectedIcon: Icon(
+                  Icons.home_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                label: 'Cart',
+                selectedIcon: Icon(
+                  Icons.shopping_cart_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outlined, color: Colors.black),
+
+                // Icon(
+                //   Icons.person_rounded,
+                //   color: Colors.white,
+                // ),
+                label: 'Profile',
+                selectedIcon: Icon(
+                  Icons.person_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
