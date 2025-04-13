@@ -1,22 +1,22 @@
 class Organization {
-  final int id;
+  final int? id;
   final String name;
   final String description;
   final int departmentId;
   final String ownerId;
   final String acronym;
-  final String createdAt;
-  final String updatedAt;
+  final String? createdAt;
+  final String? updatedAt;
 
   Organization({
-    required this.id,
+    this.id,
     required this.acronym,
-    required this.createdAt,
     required this.departmentId,
     required this.description,
     required this.name,
     required this.ownerId,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Organization.fromMap(Map<String, dynamic> map) {
@@ -30,5 +30,15 @@ class Organization {
       createdAt: map['created_at'],
       updatedAt: map['updated_at'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'acronym': acronym,
+      'department_id': departmentId,
+      'description': description,
+      'owner_id': ownerId,
+    };
   }
 }

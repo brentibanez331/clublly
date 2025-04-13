@@ -1,5 +1,8 @@
+import 'package:clublly/viewmodels/department_view_model.dart';
+import 'package:clublly/viewmodels/organization_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:clublly/views/login_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -11,7 +14,17 @@ void main() async {
     url: dotenv.env['SUPABASE_URL'] ?? '',
     anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
   );
-  runApp(const MyApp());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DepartmentViewModel()),
+        ChangeNotifierProvider(create: (_) => OrganizationViewModel()),
+      ],
+
+      child: MyApp(),
+    ),
+  );
 }
 
 final supabase = Supabase.instance.client;
