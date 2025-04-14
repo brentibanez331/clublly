@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:clublly/main.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
 import 'package:clublly/views/pages/add_organization.dart';
+import 'package:clublly/views/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:clublly/views/login_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -17,17 +18,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final user = supabase.auth.currentUser;
-
-  Future<void> signOut() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn();
-
-    try {
-      await googleSignIn.disconnect();
-      await supabase.auth.signOut();
-    } catch (error) {
-      log('Error signing out: ${error}');
-    }
-  }
 
   @override
   void initState() {
@@ -53,68 +43,105 @@ class _ProfilePageState extends State<ProfilePage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Profile'),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  signOut();
-
-                  if (context.mounted) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Sign out'),
-              ),
-            ],
-          ),
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            toolbarHeight: 90,
+            title: Row(
               children: [
                 if (profileImageUrl != null)
                   ClipOval(
                     child: Image.network(
                       profileImageUrl,
-                      width: 100,
-                      height: 100,
+                      width: 50,
+                      height: 50,
                       fit: BoxFit.cover,
                     ),
                   ),
-                const SizedBox(height: 16),
-                Text(
-                  fullName ?? '',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AddOrganization(),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fullName ?? '', style: TextStyle(fontSize: 20)),
+                    SizedBox(height: 4),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(99),
+                      onTap: () {
+                        log('Pressed profile edit');
+                      },
+                      child: Row(
+                        children: [
+                          Text('My Profile', style: TextStyle(fontSize: 14)),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.edit_outlined,
+                            color: Colors.black54,
+                            size: 16,
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  child: Text("Create Organization"),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: organizationViewModel.organizations.length,
-                    itemBuilder: (context, index) {
-                      final organization =
-                          organizationViewModel.organizations[index];
-
-                      return ListTile(
-                        title: Text(organization.name),
-                        subtitle: Text(organization.acronym),
-                      );
-                    },
-                  ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.settings_outlined),
+              ),
+              // TextButton(
+              //   onPressed: () async {
+              //     signOut();
+
+              //     if (context.mounted) {
+              //       Navigator.of(context).pushReplacement(
+              //         MaterialPageRoute(
+              //           builder: (context) => const LoginScreen(),
+              //         ),
+              //       );
+              //     }
+              //   },
+              //   child: const Text('Sign out'),
+              // ),
+            ],
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AddOrganization(),
+                        ),
+                      );
+                    },
+                    child: Text("Create Organization"),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: organizationViewModel.organizations.length,
+                      itemBuilder: (context, index) {
+                        final organization =
+                            organizationViewModel.organizations[index];
+
+                        return ListTile(
+                          title: Text(organization.name),
+                          subtitle: Text(organization.acronym),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

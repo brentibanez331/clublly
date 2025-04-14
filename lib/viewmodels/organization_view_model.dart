@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class OrganizationViewModel extends ChangeNotifier {
   List<Organization> organizations = [];
+  Organization? selectedOrganization;
+
   final supabase = Supabase.instance.client;
 
   Future<bool> addOrganization(Organization organization) async {
@@ -42,6 +44,10 @@ class OrganizationViewModel extends ChangeNotifier {
           (data as List)
               .map((organizationMap) => Organization.fromMap(organizationMap))
               .toList();
+
+      if (organizations.isNotEmpty) {
+        selectedOrganization = organizations[0];
+      }
 
       notifyListeners();
     } catch (error) {
