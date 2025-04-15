@@ -8,6 +8,9 @@ class Product {
   final num baseStock;
   final String createdAt;
   final String updatedAt;
+  String? imagePath;
+  final bool isThumbnail;
+  
 
   Product({
     required this.id,
@@ -19,6 +22,8 @@ class Product {
     required this.categoryId,
     required this.createdAt,
     required this.updatedAt,
+    this.imagePath,
+    this.isThumbnail = false,
   });
 
   // Convert a map from Supabase to a Contact object
@@ -33,6 +38,9 @@ class Product {
       baseStock: map['base_stock'],
       createdAt: map['created_at'],
       updatedAt: map['updated_at'],
+      imagePath: map['image_path'] as String?,
+      isThumbnail: map['is_thumbnail'] as bool? ?? false,
+      
     );
   }
 
