@@ -43,6 +43,21 @@ class _AddOrganizationState extends State<AddOrganization> {
         return;
       }
 
+      final organizationViewModel = Provider.of<OrganizationViewModel>(
+        context,
+        listen: false,
+      );
+
+      if (organizationViewModel.logoFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please upload an organization logo")),
+        );
+        setState(() {
+          _index = 1; // Go to logo step
+        });
+        return;
+      }
+
       final user = supabase.auth.currentUser;
       final userId = user?.id;
       if (userId == null) {
@@ -73,6 +88,11 @@ class _AddOrganizationState extends State<AddOrganization> {
           context,
           listen: false,
         ).fetchOrganizationsByUser(organization.ownerId);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Organization added successfully!")),
+        );
+        Navigator.pop(context);
       } catch (error) {
         log(error.toString());
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +102,6 @@ class _AddOrganizationState extends State<AddOrganization> {
         setState(() {
           loading = false;
         });
-        Navigator.pop(context);
       }
     }
   }
@@ -129,8 +148,8 @@ class _AddOrganizationState extends State<AddOrganization> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => DepartmentViewModel(),
-      child: Consumer<DepartmentViewModel>(
-        builder: (context, departmentViewModel, child) {
+      child: Consumer2<DepartmentViewModel, OrganizationViewModel>(
+        builder: (context, departmentViewModel, organizationViewModel, child) {
           if (departmentViewModel.departments.isEmpty) {
             departmentViewModel.fetchDepartments();
           }
@@ -139,7 +158,7 @@ class _AddOrganizationState extends State<AddOrganization> {
             child: Scaffold(
               body: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
+                  // horizontal: 8.0,
                   vertical: 16.0,
                 ),
                 child: Form(
@@ -147,23 +166,26 @@ class _AddOrganizationState extends State<AddOrganization> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Apply for your Organization',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Apply for your Organization',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close_rounded),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
+                            IconButton(
+                              icon: Icon(Icons.close_rounded),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                       Expanded(
                         child: Stepper(
@@ -276,7 +298,8 @@ class _AddOrganizationState extends State<AddOrganization> {
                                     SizedBox(height: 8),
                                     GestureDetector(
                                       onTap: () {
-                                        log('Tap if you can hear');
+                                        log("SDASD");
+                                        organizationViewModel.pickLogoImage();
                                       },
                                       child: Container(
                                         height: 330,
@@ -303,31 +326,76 @@ class _AddOrganizationState extends State<AddOrganization> {
                                             20,
                                           ),
                                         ),
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.cloud_upload_outlined),
-                                              SizedBox(height: 8),
-                                              Text(
-                                                'Select image to upload',
-                                                style: TextStyle(
-                                                  color: Colors.black54,
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
+                                        child:
+                                            organizationViewModel.logoFile !=
+                                                    null
+                                                ? Stack(
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            19,
+                                                          ),
+                                                      child: Image.file(
+                                                        organizationViewModel
+                                                            .logoFile!,
+                                                        width: double.infinity,
+                                                        height: 330,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    Positioned(
+                                                      top: 8,
+                                                      right: 8,
+                                                      child: CircleAvatar(
+                                                        backgroundColor:
+                                                            Colors.black54,
+                                                        radius: 18,
+                                                        child: IconButton(
+                                                          icon: Icon(
+                                                            Icons.close,
+                                                            color: Colors.white,
+                                                            size: 18,
+                                                          ),
+                                                          onPressed: () {
+                                                            organizationViewModel
+                                                                .clearLogoImage();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                                : Center(
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons
+                                                            .cloud_upload_outlined,
+                                                      ),
+                                                      SizedBox(height: 8),
+                                                      Text(
+                                                        'Select image to upload',
+                                                        style: TextStyle(
+                                                          color: Colors.black54,
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'Supported Format: PNG, JPG, JPEG',
+                                                        style: TextStyle(
+                                                          color: Colors.black87,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                              Text(
-                                                'Supported Format: PNG, JPG, JPEG',
-                                                style: TextStyle(
-                                                  color: Colors.black87,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   ],
@@ -498,15 +566,15 @@ class _AddOrganizationState extends State<AddOrganization> {
                                           : _descriptionController.text,
                                       style: TextStyle(fontSize: 16),
                                     ),
-                                    SizedBox(height: 32),
+                                    SizedBox(height: 48),
 
                                     // Flexible(child: Text(_descriptionController.text)),
                                     RichText(
                                       text: TextSpan(
                                         text: 'By registering ',
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 16,
+                                          color: Colors.black54,
+                                          fontSize: 12,
                                         ),
                                         children: <TextSpan>[
                                           TextSpan(

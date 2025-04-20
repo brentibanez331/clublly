@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:clublly/main.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
 import 'package:clublly/views/pages/add_organization.dart';
+import 'package:clublly/views/pages/organization/organization_page.dart';
 import 'package:clublly/views/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:clublly/views/login_screen.dart';
@@ -93,55 +94,50 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
                 icon: Icon(Icons.settings_outlined),
               ),
-              // TextButton(
-              //   onPressed: () async {
-              //     signOut();
-
-              //     if (context.mounted) {
-              //       Navigator.of(context).pushReplacement(
-              //         MaterialPageRoute(
-              //           builder: (context) => const LoginScreen(),
-              //         ),
-              //       );
-              //     }
-              //   },
-              //   child: const Text('Sign out'),
-              // ),
             ],
           ),
           body: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AddOrganization(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddOrganization(),
+                      ),
+                    );
+                  },
+                  child: Text("Create Organization"),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: organizationViewModel.organizations.length,
+                    itemBuilder: (context, index) {
+                      final organization =
+                          organizationViewModel.organizations[index];
+
+                      return InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => OrganizationPage(
+                                    organization: organization,
+                                  ),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          title: Text(organization.name),
+                          subtitle: Text(organization.acronym),
                         ),
                       );
                     },
-                    child: Text("Create Organization"),
                   ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: organizationViewModel.organizations.length,
-                      itemBuilder: (context, index) {
-                        final organization =
-                            organizationViewModel.organizations[index];
-
-                        return ListTile(
-                          title: Text(organization.name),
-                          subtitle: Text(organization.acronym),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );

@@ -1,16 +1,16 @@
 import 'package:clublly/models/product.dart';
 import 'package:flutter/material.dart';
 
-class FirstProductPage extends StatefulWidget {
+class SingleProductPage extends StatefulWidget {
   final Product product;
 
-  const FirstProductPage({super.key, required this.product});
+  const SingleProductPage({super.key, required this.product});
 
   @override
-  _FirstProductPageState createState() => _FirstProductPageState();
+  _SingleProductPageState createState() => _SingleProductPageState();
 }
 
-class _FirstProductPageState extends State<FirstProductPage> {
+class _SingleProductPageState extends State<SingleProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

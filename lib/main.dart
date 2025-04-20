@@ -1,3 +1,4 @@
+import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/department_view_model.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
@@ -22,6 +23,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => DepartmentViewModel()),
         ChangeNotifierProvider(create: (_) => OrganizationViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
+        ChangeNotifierProvider(create: (_) => CategoryViewModel()),
       ],
 
       child: MyApp(),
