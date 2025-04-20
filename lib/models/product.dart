@@ -10,7 +10,6 @@ class Product {
   final String updatedAt;
   String? imagePath;
   final bool isThumbnail;
-  
 
   Product({
     required this.id,
@@ -40,17 +39,18 @@ class Product {
       updatedAt: map['updated_at'],
       imagePath: map['image_path'] as String?,
       isThumbnail: map['is_thumbnail'] as bool? ?? false,
-      
     );
   }
 
   // Convert a Contact object to a map for insertion/updating
-  // Map<String, dynamic> toMap() {
-  //   return {
-  //     'productName': productName,
-  //     'quantity': quantity,
-  //     'price': price,
-  //     'totalPrice': totalPrice,
-  //   };
-  // }
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'description': description,
+      'base_price': basePrice,
+      'base_stock': baseStock,
+      'organization_id': organizationId,
+      'category_id': categoryId,
+    };
+  }
 }
