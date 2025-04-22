@@ -10,6 +10,7 @@ class Product {
   final String updatedAt;
   String? imagePath;
   final bool isThumbnail;
+  final String? organizationName; 
 
   Product({
     required this.id,
@@ -23,6 +24,7 @@ class Product {
     required this.updatedAt,
     this.imagePath,
     this.isThumbnail = false,
+    this.organizationName,
   });
 
   // Convert a map from Supabase to a Contact object
@@ -39,6 +41,8 @@ class Product {
       updatedAt: map['updated_at'],
       imagePath: map['image_path'] as String?,
       isThumbnail: map['is_thumbnail'] as bool? ?? false,
+      organizationName: map['organizations']?['name'],
+
     );
   }
 

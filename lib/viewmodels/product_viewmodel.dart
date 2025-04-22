@@ -37,7 +37,10 @@ class ProductViewModel extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final response = await supabase.from('products').select().order('name');
+      final response = await supabase
+        .from('products')
+        .select('*, organizations(name)')
+        .order('name');
 
       _products =
           (response as List).map((item) => Product.fromMap(item)).toList();
@@ -62,7 +65,7 @@ class ProductViewModel extends ChangeNotifier {
 
       final response = await supabase
           .from('products')
-          .select()
+          .select('*, organizations(name)')
           .eq('organization_id', organizationId)
           .order('name', ascending: true);
 

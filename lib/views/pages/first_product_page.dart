@@ -15,7 +15,7 @@ class _FirstProductPageState extends State<FirstProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Column(children: [Text("Testing")]),
+      body: Column(children: [Text("test")]),
     );
   }
 }
