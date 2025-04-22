@@ -7,6 +7,7 @@ import 'package:clublly/views/pages/organization/organization_page.dart';
 import 'package:clublly/views/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:clublly/views/login_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -118,6 +119,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       final organization =
                           organizationViewModel.organizations[index];
 
+                      String? imageUrl;
+                      if (organization.logoPath != null) {
+                        imageUrl = supabase.storage
+                            .from('logos')
+                            .getPublicUrl(organization.logoPath!);
+                      } else {
+                        imageUrl = null;
+                      }
+
                       return InkWell(
                         onTap: () {
                           Navigator.of(context).push(
@@ -130,8 +140,47 @@ class _ProfilePageState extends State<ProfilePage> {
                           );
                         },
                         child: ListTile(
-                          title: Text(organization.name),
-                          subtitle: Text(organization.acronym),
+                          title: Row(
+                            children: [
+                              CircleAvatar(
+                                child: Image.network(
+                                  imageUrl!,
+                                  loadingBuilder: (
+                                    context,
+                                    child,
+                                    loadingProgress,
+                                  ) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value:
+                                            loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                      ),
+                                    );
+                                  },
+
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 100,
+                                      width: 100,
+                                      color: Colors.grey[300],
+                                      child: Icon(Icons.error),
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text(organization.name),
+                            ],
+                          ),
+                          // subtitle: Text(organization.acronym),
                         ),
                       );
                     },

@@ -1,27 +1,27 @@
 class Product {
-  final int id;
+  final int? id;
   final int categoryId;
   final int organizationId;
   final String name;
   final String description;
   final num basePrice;
   final num baseStock;
-  final String createdAt;
-  final String updatedAt;
+  final String? createdAt;
+  final String? updatedAt;
   String? imagePath;
   final bool isThumbnail;
   final String? organizationName; 
 
   Product({
-    required this.id,
+    this.id,
     required this.name,
     required this.description,
     required this.basePrice,
     required this.baseStock,
     required this.organizationId,
     required this.categoryId,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     this.imagePath,
     this.isThumbnail = false,
     this.organizationName,
