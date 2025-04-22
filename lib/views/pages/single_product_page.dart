@@ -11,6 +11,8 @@ class FirstProductPage extends StatefulWidget {
 }
 
 class _FirstProductPageState extends State<FirstProductPage> {
+  bool _showFullDescription = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,56 +60,37 @@ class _FirstProductPageState extends State<FirstProductPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
-                  // Price
-                  Text(
-                    '\₱${widget.product.basePrice.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Description Text
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Product name
                       Expanded(
                         child: Text(
-                          "Description",
+                          widget.product.name,
                           style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            height: 1.5,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Price
+                      Text(
+                        '\₱${widget.product.basePrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 16),
-
-                  //Product name
-                  Text(
-                    widget.product.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-                  
-                  // Description 
-                  Text(
-                    widget.product.description,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
 
                   // Seller (Organization) Information
                   Container(
@@ -140,30 +123,75 @@ class _FirstProductPageState extends State<FirstProductPage> {
       ),
 
       // Bottom Navigation Bar
-     bottomNavigationBar: Container(
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.all(8),
         decoration: const BoxDecoration(
-          color: Colors.transparent, 
-          border: Border(), 
-          boxShadow: [], 
+          color: Colors.transparent,
+          border: Border(),
+          boxShadow: [],
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Buy Now logic
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, 
-                  foregroundColor: const Color.fromARGB(209, 156, 156, 156),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Description",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Buy Now'),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showFullDescription = !_showFullDescription;
+                    });
+                  },
+                  child: Text(
+                    _showFullDescription ? "Show less" : "Show more",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_showFullDescription) ...[
+              const SizedBox(height: 8),
+              Text(
+                widget.product.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                ),
               ),
+              const SizedBox(height: 16),
+            ],
+            const SizedBox(height: 10),
+            // Buy Now Button
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Buy Now logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Color.fromARGB(209, 156, 156, 156),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Buy Now'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
