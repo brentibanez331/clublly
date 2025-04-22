@@ -298,7 +298,6 @@ class _AddOrganizationState extends State<AddOrganization> {
                                     SizedBox(height: 8),
                                     GestureDetector(
                                       onTap: () {
-                                        log("SDASD");
                                         organizationViewModel.pickLogoImage();
                                       },
                                       child: Container(
