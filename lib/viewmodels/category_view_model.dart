@@ -17,6 +17,7 @@ class CategoryViewModel extends ChangeNotifier {
           (data as List)
               .map((categoryMap) => Category.fromMap(categoryMap))
               .toList();
+      notifyListeners();
     } catch (error) {
       log('Error fetching categories: ${error}');
     }

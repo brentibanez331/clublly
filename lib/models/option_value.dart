@@ -11,7 +11,7 @@ class OptionValue {
     return OptionValue(
       id: map['id'],
       value: map['value'],
-      optionId: map['created_at'],
+      optionId: map['option_id'],
     );
   }
 }

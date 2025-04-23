@@ -2,10 +2,14 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:clublly/models/option_value.dart';
+import 'package:clublly/models/product_variant_data.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 import '../models/product.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path/path.dart' as path;
 
 class ProductViewModel extends ChangeNotifier {
   final SupabaseClient supabase = Supabase.instance.client;
@@ -24,6 +28,10 @@ class ProductViewModel extends ChangeNotifier {
   File? _thumbnail;
   List<XFile> _productImages = [];
 
+  List<String> _sizeValues = [];
+  List<String> _colorValues = [];
+  List<ProductVariantData> _variants = [];
+
   List<Product> get products => _products;
   Product? get productToAdd => _productToAdd;
   List<Product> get organizationProducts => _organizationProducts;
@@ -33,6 +41,9 @@ class ProductViewModel extends ChangeNotifier {
   int? get currentOrganizationId => _currentOrganizationId;
   File? get thumbnail => _thumbnail;
   List<XFile> get productImages => _productImages;
+  List<ProductVariantData> get variants => _variants;
+  List<String> get sizeValues => _sizeValues;
+  List<String> get colorValues => _colorValues;
 
   Future<void> pickThumbnail() async {
     log("THIS SHIT IS RUNNING");
@@ -77,23 +88,57 @@ class ProductViewModel extends ChangeNotifier {
     int organizationId,
     int categoryId,
   ) {
-    _productToAdd = Product(
-      name: name,
-      description: description,
-      basePrice: basePrice,
-      baseStock: baseStock,
-      organizationId: organizationId,
-      categoryId: categoryId,
-    );
+    if (variants.isNotEmpty) {
+      _productToAdd = Product(
+        name: name,
+        description: description,
+        basePrice: 0,
+        baseStock: 0,
+        organizationId: organizationId,
+        categoryId: categoryId,
+      );
+    } else {
+      _productToAdd = Product(
+        name: name,
+        description: description,
+        basePrice: basePrice,
+        baseStock: baseStock,
+        organizationId: organizationId,
+        categoryId: categoryId,
+      );
+    }
 
     notifyListeners();
   }
 
-  Future<void> addProduct(Product product) async {
+  Future<void> addProduct() async {
     try {
-      await supabase.from('products').upsert(product.toMap()).select();
+      if (_productToAdd != null) {
+        final data =
+            await supabase
+                .from('products')
+                .upsert(_productToAdd!.toMap())
+                .select();
 
-      await fetchProductsByOrganization(product.organizationId);
+        if (_thumbnail != null) {
+          final uuid = Uuid().v4();
+          final fileName = path.basename(_thumbnail!.path);
+          final storageFilePath = '$uuid/$fileName';
+
+          await supabase.storage
+              .from('products')
+              .upload(
+                storageFilePath,
+                _thumbnail!,
+                fileOptions: const FileOptions(
+                  cacheControl: '3600',
+                  upsert: false,
+                ),
+              );
+        }
+
+        await fetchProductsByOrganization(data[0]['organization_id']);
+      }
     } catch (error) {
       log('Error adding product: ${error}');
     }
@@ -105,9 +150,9 @@ class ProductViewModel extends ChangeNotifier {
       notifyListeners();
 
       final response = await supabase
-        .from('products')
-        .select('*, organizations(name)')
-        .order('name');
+          .from('products')
+          .select('*, organizations(name)')
+          .order('name');
 
       _products =
           (response as List).map((item) => Product.fromMap(item)).toList();
@@ -173,4 +218,94 @@ class ProductViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void regenerateVariants(bool enableSizes, bool enableColors) {
+    // Save the current values if any
+    Map<String, ProductVariantData> existingVariantData = {};
+    for (var variant in variants) {
+      String key = _getVariantKey(variant);
+      existingVariantData[key] = variant;
+    }
+
+    // Generate all combinations
+    List<ProductVariantData> newVariants = [];
+
+    if (enableSizes &&
+        enableColors &&
+        sizeValues.isNotEmpty &&
+        colorValues.isNotEmpty) {
+      for (var size in sizeValues) {
+        for (var color in colorValues) {
+          String key = '${size}-${color}';
+
+          if (existingVariantData.containsKey(key)) {
+            newVariants.add(existingVariantData[key]!);
+          } else {
+            newVariants.add(ProductVariantData(size: size, color: color));
+          }
+        }
+      }
+    } else if (enableSizes && sizeValues.isNotEmpty) {
+      for (var size in sizeValues) {
+        String key = '$size-';
+        if (existingVariantData.containsKey(key)) {
+          newVariants.add(existingVariantData[key]!);
+        } else {
+          newVariants.add(ProductVariantData(size: size));
+        }
+      }
+    } else if (enableColors && colorValues.isNotEmpty) {
+      for (var color in colorValues) {
+        String key = '-$color';
+        if (existingVariantData.containsKey(key)) {
+          newVariants.add(existingVariantData[key]!);
+        } else {
+          newVariants.add(ProductVariantData(color: color));
+        }
+      }
+    }
+
+    _variants = newVariants;
+    notifyListeners();
+  }
+
+  String _getVariantKey(ProductVariantData variant) {
+    return '${variant.size ?? ""}-${variant.color ?? ""}';
+  }
+
+  void addValueToSizes(String value) {
+    _sizeValues.add(value);
+    notifyListeners();
+  }
+
+  void removeValueFromSizes(int index) {
+    _sizeValues.removeAt(index);
+    notifyListeners();
+  }
+
+  void addValueToColors(String value) {
+    _colorValues.add(value);
+    notifyListeners();
+  }
+
+  void removeValueFromColors(int index) {
+    _colorValues.removeAt(index);
+    notifyListeners();
+  }
+
+  void clearSizeOrColor(String option) {
+    if (option == 'Size') {
+      _sizeValues.clear();
+    } else {
+      _colorValues.clear();
+    }
+
+    notifyListeners();
+  }
+
+  // void clearVariants() {
+  //   _sizes = [];
+  //   _colors = [];
+  //   notifyListeners();
+  // }
 }

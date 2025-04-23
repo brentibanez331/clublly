@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:clublly/models/category.dart';
+import 'package:clublly/models/product_variant.dart';
+import 'package:clublly/models/product_variant_data.dart';
 import 'package:clublly/services/camera_service.dart';
 import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
@@ -28,6 +30,12 @@ class _AddProductState extends State<AddProduct> {
   final TextEditingController _baseStockController = TextEditingController();
   String? _selectedCategory;
 
+  bool enableSizes = false;
+  bool enableColors = false;
+
+  final TextEditingController _newSizeController = TextEditingController();
+  final TextEditingController _newColorController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<CategoryViewModel, ProductViewModel>(
@@ -45,17 +53,18 @@ class _AddProductState extends State<AddProduct> {
             ),
             bottomNavigationBar: Padding(
               padding: EdgeInsets.all(8.0),
-              child: ElevatedButton(
+              child: FilledButton(
                 onPressed: () {
+                  bool hasVariants = productViewModel.variants.isNotEmpty;
+
                   productViewModel.buildProduct(
                     _nameController.text,
                     _descriptionController.text,
-                    double.parse(_basePriceController.text),
-                    int.parse(_baseStockController.text),
+                    hasVariants ? 0 : double.parse(_basePriceController.text),
+                    hasVariants ? 0 : int.parse(_baseStockController.text),
                     widget.organizationId,
                     int.parse(_selectedCategory!),
                   );
-
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => AddProductPreview(),
@@ -74,13 +83,19 @@ class _AddProductState extends State<AddProduct> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PRODUCT',
+                        'Product Information',
                         style: TextStyle(
-                          color: Colors.black38,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 24,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 4),
+                      Text(
+                        'Please provide all required information to publish your product on Clublly.',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      SizedBox(height: 12),
                       Text('Product Name', style: TextStyle(fontSize: 16)),
                       SizedBox(height: 4),
                       TextFormField(
@@ -150,75 +165,170 @@ class _AddProductState extends State<AddProduct> {
 
                       // DropdownButtonFormField(items: categoryViewModel.categories.isNotEmpty ? categoryViewModel.categories.map<DropdownMenuItem<String>>(Category category) => DropdownMenuItem<String>(value: category.id), onChanged: onChanged)
                       SizedBox(height: 12),
-                      Text('Base Price', style: TextStyle(fontSize: 16)),
-                      SizedBox(height: 4),
-                      SizedBox(
-                        width: 100,
-                        child: TextFormField(
-                          controller: _basePriceController,
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            if (value != '') {
-                              if (int.parse(value) < 1) {
-                                _baseStockController.text = '1';
+
+                      if (!enableSizes && !enableColors) ...[
+                        Text('Base Price', style: TextStyle(fontSize: 16)),
+                        SizedBox(height: 4),
+                        SizedBox(
+                          width: 100,
+                          child: TextFormField(
+                            controller: _basePriceController,
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              if (value != '') {
+                                if (int.parse(value) < 1) {
+                                  _baseStockController.text = '1';
+                                }
                               }
-                            }
-                          },
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Organization name is required";
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Organization name is required";
-                            }
-                            return null;
-                          },
+                        ),
+                        SizedBox(height: 12),
+                        Text('Base Quantity', style: TextStyle(fontSize: 16)),
+                        SizedBox(height: 4),
+                        SizedBox(
+                          width: 100,
+                          child: TextFormField(
+                            controller: _baseStockController,
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              if (value != '') {
+                                if (int.parse(value) < 1) {
+                                  _baseStockController.text = '1';
+                                }
+                              }
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              // hintText: 'Complete Name',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Organization name is required";
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+
+                      SizedBox(height: 32),
+                      Text(
+                        'Options',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 12),
-                      Text('Base Quantity', style: TextStyle(fontSize: 16)),
                       SizedBox(height: 4),
-                      SizedBox(
-                        width: 100,
-                        child: TextFormField(
-                          controller: _baseStockController,
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            if (value != '') {
-                              if (int.parse(value) < 1) {
-                                _baseStockController.text = '1';
-                              }
-                            }
-                          },
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            // hintText: 'Complete Name',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Organization name is required";
-                            }
-                            return null;
-                          },
-                        ),
+                      Text(
+                        'Adding variants will remove the base price and quantity and require you to add a price and stock for each variant.',
+                        style: TextStyle(color: Colors.black54),
                       ),
+
+                      _buildOptionSection(
+                        'Size',
+                        enableSizes,
+                        productViewModel.sizeValues,
+                        _newSizeController,
+                        () => setState(() => enableSizes = true),
+                        (value) {
+                          setState(() {
+                            productViewModel.addValueToSizes(value);
+                            _newSizeController.clear();
+                            productViewModel.regenerateVariants(
+                              enableSizes,
+                              enableColors,
+                            );
+                          });
+                        },
+                        (index) {
+                          setState(() {
+                            productViewModel.removeValueFromSizes(index);
+                            productViewModel.regenerateVariants(
+                              enableSizes,
+                              enableColors,
+                            );
+                          });
+                        },
+                        productViewModel.regenerateVariants,
+                        productViewModel.clearSizeOrColor,
+                      ),
+
+                      if (enableSizes) SizedBox(height: 16),
+                      // if (enableSizes) Text("Selections enabled"),
+                      _buildOptionSection(
+                        'Color',
+                        enableColors,
+                        productViewModel.colorValues,
+                        _newColorController,
+                        () => setState(() => enableColors = true),
+                        (value) {
+                          setState(() {
+                            productViewModel.addValueToColors(value);
+                            _newColorController.clear();
+                            productViewModel.regenerateVariants(
+                              enableSizes,
+                              enableColors,
+                            );
+                          });
+                        },
+                        (index) {
+                          setState(() {
+                            productViewModel.removeValueFromColors(index);
+                            productViewModel.regenerateVariants(
+                              enableSizes,
+                              enableColors,
+                            );
+                          });
+                        },
+                        productViewModel.regenerateVariants,
+                        productViewModel.clearSizeOrColor,
+                      ),
+
                       SizedBox(height: 24),
-                      // Text(
-                      //   'OPTIONS',
-                      //   style: TextStyle(
-                      //     color: Colors.black38,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
-                      // TextButton(child: Text('Add Sizes'), onPressed: () {}),
-                      // TextButton(child: Text('Add Colors'), onPressed: () {}),
-                      // SizedBox(height: 24),
+
+                      if (productViewModel.variants.isNotEmpty) ...[
+                        Text(
+                          'Variants',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Add custom price and stock for your variants.',
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                        SizedBox(height: 12),
+                        _buildVariantsTable(productViewModel.variants),
+                      ],
+
+                      SizedBox(height: 32),
                       Text(
                         'IMAGES',
                         style: TextStyle(
-                          color: Colors.black38,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 24,
                         ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Please upload images of the actual product appearance.',
+                        style: TextStyle(color: Colors.black54),
                       ),
                       SizedBox(height: 10),
                       Text('Cover Image', style: TextStyle(fontSize: 16)),
@@ -394,6 +504,164 @@ class _AddProductState extends State<AddProduct> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildOptionSection(
+    String optionName,
+    bool isEnabled,
+    List<String> values,
+    TextEditingController controller,
+    VoidCallback onEnable,
+    Function(String) onAdd,
+    Function(int) onRemove,
+    Function(bool, bool) regenerateVariants,
+    Function(String) clearSizeOrColor,
+  ) {
+    if (!isEnabled) {
+      return TextButton(onPressed: onEnable, child: Text('Add $optionName'));
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(
+              '$optionName: ',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, size: 18),
+              onPressed: () {
+                setState(() {
+                  if (optionName == 'Size') {
+                    enableSizes = false;
+                    // sizeValues.clear();
+                    clearSizeOrColor('Size');
+                  } else {
+                    enableColors = false;
+                    clearSizeOrColor('Color');
+                  }
+                  regenerateVariants(enableSizes, enableColors);
+                });
+              },
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...values.asMap().entries.map((entry) {
+              return InputChip(
+                label: Text(entry.value),
+                onDeleted: () => onRemove(entry.key),
+              );
+            }),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 12,
+                  ),
+                  hintText: '${optionName.toLowerCase()}',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add, size: 18),
+                    onPressed: () {
+                      if (controller.text.isNotEmpty) {
+                        onAdd(controller.text);
+                      }
+                    },
+                  ),
+                ),
+                onSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    onAdd(value);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVariantsTable(List<ProductVariantData> variants) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        padding: EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.black12, spreadRadius: 4, blurRadius: 10),
+          ],
+        ),
+        child: DataTable(
+          columnSpacing: 20,
+
+          columns: [
+            if (enableSizes) DataColumn(label: Expanded(child: Text('Size'))),
+            if (enableColors) DataColumn(label: Expanded(child: Text('Color'))),
+            DataColumn(label: Expanded(child: Text('Price'))),
+            DataColumn(label: Expanded(child: Text('Stock'))),
+          ],
+          rows:
+              variants.map((variant) {
+                return DataRow(
+                  // color: if(),
+                  cells: [
+                    if (enableSizes) DataCell(Text(variant.size ?? '-')),
+                    if (enableColors) DataCell(Text(variant.color ?? '-')),
+                    DataCell(
+                      SizedBox(
+                        width: 80,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: variant.priceController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      SizedBox(
+                        width: 80,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: variant.stockController,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+        ),
+      ),
     );
   }
 }

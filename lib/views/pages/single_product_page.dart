@@ -20,46 +20,45 @@ class _FirstProductPageState extends State<FirstProductPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           // Product Image with overlayed back button
-            Stack(
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    double size = constraints.maxWidth; 
+            // Product Image with overlayed back button
+            // Stack(
+            //   children: [
+            //     LayoutBuilder(
+            //       builder: (context, constraints) {
+            //         double size = constraints.maxWidth;
 
-                    return Container(
-                      height: size,
-                      width: size,
-                      color: Colors.grey[200],
-                      child: _buildProductImage(widget.product),
-                    );
-                  },
-                ),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            //         return Container(
+            //           height: size,
+            //           width: size,
+            //           color: Colors.grey[200],
+            //           child: _buildProductImage(widget.product),
+            //         );
+            //       },
+            //     ),
+            //     SafeArea(
+            //       child: Padding(
+            //         padding: const EdgeInsets.all(12.0),
+            //         child: GestureDetector(
+            //           onTap: () => Navigator.pop(context),
+            //           child: Container(
+            //             padding: const EdgeInsets.all(6),
+            //             decoration: BoxDecoration(
+            //               color: Colors.black.withOpacity(0.4),
+            //               shape: BoxShape.circle,
+            //             ),
+            //             child: const Icon(Icons.arrow_back, color: Colors.white),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
             // Product Details
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -139,10 +138,7 @@ class _FirstProductPageState extends State<FirstProductPage> {
               children: [
                 const Text(
                   "Description",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -152,10 +148,7 @@ class _FirstProductPageState extends State<FirstProductPage> {
                   },
                   child: Text(
                     _showFullDescription ? "Show less" : "Show more",
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                 ),
               ],
@@ -164,10 +157,7 @@ class _FirstProductPageState extends State<FirstProductPage> {
               const SizedBox(height: 8),
               Text(
                 widget.product.description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                ),
+                style: const TextStyle(fontSize: 14, height: 1.5),
               ),
               const SizedBox(height: 16),
             ],
