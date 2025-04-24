@@ -10,4 +10,13 @@ class ProductVariantData {
     priceController.text = '0';
     stockController.text = '0';
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'size': size,
+      'color': color,
+      'price': priceController.text ?? 0,
+      'stock_quantity': stockController.text ?? 0,
+    };
+  }
 }

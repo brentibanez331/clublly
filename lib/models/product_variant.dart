@@ -1,18 +1,18 @@
 // IGNORE FOR NOW!!!
 
 class ProductVariant {
-  final int id;
+  final int? id;
   final int productId;
   final num price;
   final num stockQuantity;
-  final String createdAt;
+  final String? createdAt;
 
   ProductVariant({
-    required this.id,
+    this.id,
     required this.price,
     required this.productId,
     required this.stockQuantity,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory ProductVariant.fromMap(Map<String, dynamic> map) {
@@ -23,5 +23,13 @@ class ProductVariant {
       stockQuantity: map['stock_quantity'],
       createdAt: map['created_at'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'price': price,
+      'product_id': productId,
+      'stock_quantity': stockQuantity,
+    };
   }
 }

@@ -1,14 +1,14 @@
 class ProductImage {
-  final int id;
+  final int? id;
   final int productId;
-  final String isThumbnail;
-  final String createdAt;
+  final bool isThumbnail;
+  final String? createdAt;
   final String imagePath;
 
   ProductImage({
-    required this.id,
+    this.id,
     required this.imagePath,
-    required this.createdAt,
+    this.createdAt,
     required this.isThumbnail,
     required this.productId,
   });
@@ -21,5 +21,13 @@ class ProductImage {
       isThumbnail: map['is_thumbnail'],
       productId: map['product_id'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'image_path': imagePath,
+      'product_id': productId,
+      'is_thumbnail': isThumbnail,
+    };
   }
 }
