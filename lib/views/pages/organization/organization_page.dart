@@ -2,6 +2,8 @@ import 'package:clublly/models/organization.dart';
 import 'package:clublly/models/product_image.dart';
 import 'package:clublly/views/dashboard.dart';
 import 'package:clublly/views/pages/organization/organization_home_page.dart';
+import 'package:clublly/views/pages/organization/organization_locations.dart';
+import 'package:clublly/views/pages/organization/organization_order_page.dart';
 import 'package:clublly/views/pages/organization/organization_product_page.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +18,7 @@ class OrganizationPage extends StatefulWidget {
 }
 
 class _OrganizationPageState extends State<OrganizationPage> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 2;
 
   @override
   void initState() {
@@ -51,7 +53,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
           index: _selectedIndex,
           children: [
             OrganizationHomePage(),
+            OrganizationOrderPage(),
             OrganizationProductPage(organizationId: widget.organization.id!),
+            OrganizationLocations(organizationId: widget.organization.id!),
           ],
         ),
         drawer: Drawer(
@@ -87,11 +91,10 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     ),
                     ListTile(
                       title: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.shopping_bag_outlined),
+                          Icon(Icons.receipt_outlined),
                           SizedBox(width: 10),
-                          const Text('Products'),
+                          const Text('Orders'),
                         ],
                       ),
                       selected: _selectedIndex == 1,
@@ -104,16 +107,34 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     ),
                     ListTile(
                       title: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.receipt_outlined),
+                          Icon(Icons.shopping_bag_outlined),
                           SizedBox(width: 10),
-                          const Text('Orders'),
+                          const Text('Products'),
                         ],
                       ),
                       selected: _selectedIndex == 2,
                       onTap: () {
                         // Update the state of the app
                         _onItemTapped(2);
+                        // Then close the drawer
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      title: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.place),
+                          SizedBox(width: 10),
+                          const Text('Pickup Locations'),
+                        ],
+                      ),
+                      selected: _selectedIndex == 3,
+                      onTap: () {
+                        // Update the state of the app
+                        _onItemTapped(3);
                         // Then close the drawer
                         Navigator.pop(context);
                       },
