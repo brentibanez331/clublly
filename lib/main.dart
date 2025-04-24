@@ -1,6 +1,7 @@
 import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/department_view_model.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
+import 'package:clublly/viewmodels/pickup_location_view_model.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:clublly/views/login_screen.dart';
@@ -24,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrganizationViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => PickupLocationViewModel()),
       ],
 
       child: MyApp(),
