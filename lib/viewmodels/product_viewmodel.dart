@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:clublly/models/option_value.dart';
+import 'package:clublly/models/product_image.dart';
+import 'package:clublly/models/product_variant.dart';
 import 'package:clublly/models/product_variant_data.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -111,36 +113,206 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void dummyFunc() {
+    for (var variant in _variants) {
+      log('${variant.toMap()}');
+    }
+
+    log('${findVariant('Red', 'S')!.toMap()}');
+  }
+
   Future<void> addProduct() async {
     try {
-      if (_productToAdd != null) {
-        final data =
-            await supabase
-                .from('products')
-                .upsert(_productToAdd!.toMap())
-                .select();
+      if (_productToAdd == null) return;
 
-        if (_thumbnail != null) {
-          final uuid = Uuid().v4();
-          final fileName = path.basename(_thumbnail!.path);
-          final storageFilePath = '$uuid/$fileName';
+      final user = supabase.auth.currentUser;
+      log('Current user: ${user?.id}');
 
-          await supabase.storage
+      log("${_productToAdd!.toMap()}");
+
+      // await supabase.from('products').insert(_productToAdd!.toMap());
+
+      final data =
+          await supabase
               .from('products')
-              .upload(
-                storageFilePath,
-                _thumbnail!,
-                fileOptions: const FileOptions(
-                  cacheControl: '3600',
-                  upsert: false,
-                ),
-              );
-        }
+              .upsert(_productToAdd!.toMap())
+              .select();
 
-        await fetchProductsByOrganization(data[0]['organization_id']);
+      final productId = data[0]['id'];
+
+      // Process image uploads in parallel
+      await Future.wait([
+        if (_thumbnail != null) uploadThumbnail(productId),
+        if (_productImages.isNotEmpty) uploadSupportingImages(productId),
+      ]);
+
+      // Create variants if needed
+      if (_sizeValues.isNotEmpty || _colorValues.isNotEmpty) {
+        await _createProductVariants(productId);
       }
+
+      await fetchProductsByOrganization(data[0]['organization_id']);
+
+      // Reset state
+      _resetProductForm();
     } catch (error) {
       log('Error adding product: ${error}');
+    }
+  }
+
+  // Reset the form after submission
+  void _resetProductForm() {
+    _productToAdd = null;
+    _thumbnail = null;
+    _productImages = [];
+    _variants = [];
+    _sizeValues = [];
+    _colorValues = [];
+    _errorMessage = '';
+    notifyListeners();
+  }
+
+  ProductVariantData? findVariant(String? color, String? size) {
+    return _variants.firstWhere(
+      (variant) =>
+          // Match based on available attributes
+          (_colorValues.isEmpty || variant.color == color) &&
+          (_sizeValues.isEmpty || variant.size == size),
+      // orElse: () => null,
+    );
+  }
+
+  Future<void> _createProductVariants(int productId) async {
+    try {
+      Map<String, int> sizeValueIds = {};
+      Map<String, int> colorValueIds = {};
+
+      // Process sizes (only if there are size variants)
+      if (_sizeValues.isNotEmpty) {
+        for (var size in _sizeValues) {
+          final sizeDto = OptionValue(value: size, optionId: 2);
+          final sizeOptionValue =
+              await supabase
+                  .from('optionValues')
+                  .upsert(sizeDto.toMap())
+                  .select();
+          log("Inserted size with id: ${sizeOptionValue[0]['id']}");
+          sizeValueIds[size] = sizeOptionValue[0]['id'];
+        }
+      }
+
+      // Process colors (only if there are color variants)
+      if (_colorValues.isNotEmpty) {
+        for (var color in _colorValues) {
+          final colorDto = OptionValue(value: color, optionId: 1);
+          final colorOptionValue =
+              await supabase
+                  .from('optionValues')
+                  .upsert(colorDto.toMap())
+                  .select();
+          colorValueIds[color] = colorOptionValue[0]['id'];
+        }
+      }
+
+      for (var variant in _variants) {
+        final productVariant = ProductVariant(
+          price: double.tryParse(variant.priceController.text) as num,
+          productId: productId,
+          stockQuantity: int.parse(variant.stockController.text) as num,
+        );
+
+        final variantResult =
+            await supabase
+                .from('productVariants')
+                .upsert(productVariant.toMap())
+                .select();
+
+        final variantId = variantResult[0]['id'];
+
+        // Create the relationships between variant and option values
+        // Only create size relationships if we have sizes
+        if (_sizeValues.isNotEmpty &&
+            variant.size != null &&
+            sizeValueIds.containsKey(variant.size)) {
+          await _createVariantOptionValue(
+            sizeValueIds[variant.size!]!,
+            variantId,
+          );
+        }
+
+        // Only create color relationships if we have colors
+        if (_colorValues.isNotEmpty &&
+            variant.color != null &&
+            colorValueIds.containsKey(variant.color)) {
+          await _createVariantOptionValue(
+            colorValueIds[variant.color!]!,
+            variantId,
+          );
+        }
+      }
+    } catch (e) {
+      log('Error creating variants: $e');
+      rethrow; // Let the parent method handle this
+    }
+  }
+
+  Future<void> _createVariantOptionValue(
+    int optionValueId,
+    int variantId,
+  ) async {
+    await supabase.from('productVariantOptionValues').insert({
+      'option_value_id': optionValueId,
+      'product_variant_id': variantId,
+    });
+  }
+
+  Future<void> uploadThumbnail(int productId) async {
+    try {
+      final uuid = Uuid().v4();
+      final fileName = path.basename(_thumbnail!.path);
+      final storageFilePath = '$uuid/$fileName';
+
+      await supabase.storage
+          .from('products')
+          .upload(
+            storageFilePath,
+            _thumbnail!,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+          );
+
+      final thumbnailDto = ProductImage(
+        imagePath: storageFilePath,
+        isThumbnail: true,
+        productId: productId,
+      );
+
+      await supabase.from('productImages').insert(thumbnailDto.toMap());
+    } catch (error) {
+      log('Error uploading thumbnail: ${error}');
+      rethrow;
+    }
+  }
+
+  Future<void> uploadSupportingImages(int productId) async {
+    for (var img in _productImages) {
+      final uuid = Uuid().v4();
+      final fileName = path.basename(img.path);
+      final storageFilePath = '$uuid/$fileName';
+      await supabase.storage
+          .from('products')
+          .upload(
+            storageFilePath,
+            File(img.path),
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+          );
+
+      final extraImageDto = ProductImage(
+        imagePath: storageFilePath,
+        isThumbnail: false,
+        productId: productId,
+      );
+
+      await supabase.from('productImages').insert(extraImageDto.toMap());
     }
   }
 
