@@ -4,12 +4,14 @@ class PickupLocation {
   final int? id;
   final int organizationId;
   final String address;
+  final String? description;
   final String? createdAt;
   final String? deletedAt;
 
   PickupLocation({
     this.id,
     required this.address,
+    this.description,
     this.createdAt,
     this.deletedAt,
     required this.organizationId,
@@ -19,6 +21,7 @@ class PickupLocation {
     return PickupLocation(
       id: map['id'],
       address: map['address'],
+      description: map['description'] ?? 'Not specified',
       createdAt: map['created_at'],
       deletedAt: map['deleted_at'],
       organizationId: map['organization_id'],
@@ -26,6 +29,10 @@ class PickupLocation {
   }
 
   Map<String, dynamic> toMap() {
-    return {'address': address, 'organization_id': organizationId};
+    return {
+      'address': address,
+      'description': description,
+      'organization_id': organizationId,
+    };
   }
 }
