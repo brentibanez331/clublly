@@ -18,7 +18,7 @@ class ProductViewModel extends ChangeNotifier {
   List<Product> _products = [];
   Product? _productToAdd;
 
-  bool _isLoading = false;
+  bool _isLoadingAllProducts = false;
   String _errorMessage = '';
 
   List<Product> _organizationProducts = [];
@@ -37,7 +37,7 @@ class ProductViewModel extends ChangeNotifier {
   List<Product> get products => _products;
   Product? get productToAdd => _productToAdd;
   List<Product> get organizationProducts => _organizationProducts;
-  bool get isLoading => _isLoading;
+  bool get isLoadingAllProducts => _isLoadingAllProducts;
   bool get isLoadingOrganizationProducts => _isLoadingOrganizationProducts;
   String get errorMessage => _errorMessage;
   int? get currentOrganizationId => _currentOrganizationId;
@@ -111,14 +111,6 @@ class ProductViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-  }
-
-  void dummyFunc() {
-    for (var variant in _variants) {
-      log('${variant.toMap()}');
-    }
-
-    log('${findVariant('Red', 'S')!.toMap()}');
   }
 
   Future<void> addProduct() async {
@@ -318,13 +310,32 @@ class ProductViewModel extends ChangeNotifier {
 
   Future<void> fetchProducts() async {
     try {
-      _isLoading = true;
+      _isLoadingAllProducts = true;
       notifyListeners();
 
       final response = await supabase
           .from('products')
-          .select('*, organizations(name)')
+          .select('''
+            *, 
+            organizations(acronym, logo_path),
+            productImages!inner(id, image_path),
+            productVariants(
+              id,
+              product_id,
+              price,
+              stock_quantity,
+              productVariantOptionValues(
+                option_value_id,
+                optionValues(
+                  id, option_id, value, options(type)
+                )
+              )
+            )
+          ''')
+          .eq('productImages.is_thumbnail', true)
           .order('name');
+
+      log(response.toString());
 
       _products =
           (response as List).map((item) => Product.fromMap(item)).toList();
@@ -332,7 +343,7 @@ class ProductViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Failed to fetch products: ${e.toString()}';
     } finally {
-      _isLoading = false;
+      _isLoadingAllProducts = false;
       notifyListeners();
     }
   }
@@ -349,11 +360,29 @@ class ProductViewModel extends ChangeNotifier {
 
       final response = await supabase
           .from('products')
-          .select('*, organizations(name)')
+          .select('''
+            *,
+            organizations(name),
+            productImages!inner(id, image_path),
+            productVariants(
+              id,
+              product_id,
+              price,
+              stock_quantity,
+              productVariantOptionValues(
+                option_value_id,
+                optionValues(
+                  id,
+                  option_id,
+                  value,
+                  options(type)
+                )
+              )
+            )
+          ''')
           .eq('organization_id', organizationId)
+          .eq('productImages.is_thumbnail', true)
           .order('name', ascending: true);
-
-      log(response.toString());
 
       _organizationProducts =
           (response as List).map((item) => Product.fromMap(item)).toList();
@@ -361,6 +390,7 @@ class ProductViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage =
           'Failed to fetch products for organization: ${e.toString()}';
+      log(_errorMessage);
     } finally {
       _isLoadingOrganizationProducts = false;
       notifyListeners();
