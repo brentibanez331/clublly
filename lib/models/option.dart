@@ -1,17 +1,10 @@
-// IGNORE FOR NOW!!!
-
 class Option {
-  final int id;
+  final int? id;
   final String type;
-  final String createdAt;
 
-  Option({required this.id, required this.type, required this.createdAt});
+  Option({this.id, required this.type});
 
   factory Option.fromMap(Map<String, dynamic> map) {
-    return Option(
-      id: map['id'],
-      type: map['type'],
-      createdAt: map['created_at'],
-    );
+    return Option(id: map['id'], type: map['type']);
   }
 }
