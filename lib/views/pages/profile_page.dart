@@ -45,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         return Scaffold(
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
             toolbarHeight: 90,
             title: Row(
               children: [

@@ -103,7 +103,7 @@ class _FirstProductPageState extends State<FirstProductPage> {
                         Icon(Icons.store, color: Colors.blue[700]),
                         const SizedBox(width: 8),
                         Text(
-                          'Seller: ${widget.product.organizationName ?? "Organization #${widget.product.organizationId}"}',
+                          'Seller: ${widget.product.organizationAcronym ?? "Organization #${widget.product.organizationId}"}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -189,30 +189,30 @@ class _FirstProductPageState extends State<FirstProductPage> {
     );
   }
 
-  Widget _buildProductImage(Product product) {
-    if (product.imagePath != null && product.imagePath!.isNotEmpty) {
-      if (product.imagePath!.startsWith('http')) {
-        return Image.network(
-          product.imagePath!,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildPlaceholderImage();
-          },
-        );
-      } else if (product.imagePath!.startsWith('assets/')) {
-        return Image.asset(
-          product.imagePath!,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildPlaceholderImage();
-          },
-        );
-      }
-    }
-    return _buildPlaceholderImage();
-  }
+  // Widget _buildProductImage(Product product) {
+  // if (product.imagePath != null && product.imagePath!.isNotEmpty) {
+  //   if (product.imagePath!.startsWith('http')) {
+  //     return Image.network(
+  //       product.imagePath!,
+  //       fit: BoxFit.cover,
+  //       width: double.infinity,
+  //       errorBuilder: (context, error, stackTrace) {
+  //         return _buildPlaceholderImage();
+  //       },
+  //     );
+  //   } else if (product.imagePath!.startsWith('assets/')) {
+  //     return Image.asset(
+  //       product.imagePath!,
+  //       fit: BoxFit.cover,
+  //       width: double.infinity,
+  //       errorBuilder: (context, error, stackTrace) {
+  //         return _buildPlaceholderImage();
+  //       },
+  //     );
+  //   }
+  // }
+  // return _buildPlaceholderImage();
+  // }
 
   Widget _buildPlaceholderImage() {
     return Container(

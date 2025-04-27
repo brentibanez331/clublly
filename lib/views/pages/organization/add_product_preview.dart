@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:clublly/utils/colors.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,10 +26,6 @@ class _AddProductPreviewState extends State<AddProductPreview> {
         if (selectedSize == null && productViewModel.sizeValues.isNotEmpty) {
           selectedSize = productViewModel.sizeValues[0];
         }
-
-        // if (selectedColor == null && productViewModel.colorValues.isNotEmpty) {
-        //   selectedColor = productViewModel.colorValues
-        // }
 
         hasVariants = productViewModel.variants.isNotEmpty;
 
@@ -92,13 +89,16 @@ class _AddProductPreviewState extends State<AddProductPreview> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(
-                                  productViewModel.productToAdd!.name,
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w500,
+                                Flexible(
+                                  child: Text(
+                                    productViewModel.productToAdd!.name,
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
+                                SizedBox(width: 50),
                                 Text(
                                   "₱${hasVariants! ? getDisplayPrice(productViewModel) : productViewModel.productToAdd!.basePrice.toStringAsFixed(2)}",
                                   style: TextStyle(
@@ -126,6 +126,10 @@ class _AddProductPreviewState extends State<AddProductPreview> {
                                       .entries
                                       .map((entry) {
                                         return ChoiceChip(
+                                          backgroundColor: AppColors.secondary
+                                              .withValues(alpha: 0.05),
+                                          selectedColor: AppColors.secondary
+                                              .withValues(alpha: 0.2),
                                           label: Text(entry.value),
                                           selected: entry.value == selectedSize,
                                           onSelected: (bool selected) {
@@ -230,9 +234,11 @@ class _AddProductPreviewState extends State<AddProductPreview> {
                             style: FilledButton.styleFrom(
                               backgroundColor: Colors.black87,
                             ),
-                            onPressed: () {
-                              log(productViewModel.variants[0].size!);
-                              log(productViewModel.variants[0].color!);
+                            onPressed: () async {
+                              // productViewModel.dummyFunc();
+                              await productViewModel.addProduct();
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             },
                             child: Text("CONFIRM"),
                           ),
@@ -291,7 +297,9 @@ class _AddProductPreviewState extends State<AddProductPreview> {
     if (selectedSize != null && selectedColor != null) {
       for (var variant in productViewModel.variants) {
         if (variant.size == selectedSize && variant.color == selectedColor) {
-          return variant.priceController.text;
+          return double.tryParse(
+            variant.priceController.text,
+          )!.toStringAsFixed(2);
         }
       }
     }

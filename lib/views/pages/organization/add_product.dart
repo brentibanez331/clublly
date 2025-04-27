@@ -4,6 +4,7 @@ import 'package:clublly/models/category.dart';
 import 'package:clublly/models/product_variant.dart';
 import 'package:clublly/models/product_variant_data.dart';
 import 'package:clublly/services/camera_service.dart';
+import 'package:clublly/utils/colors.dart';
 import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
 import 'package:clublly/views/pages/organization/add_product_preview.dart';
@@ -48,8 +49,8 @@ class _AddProductState extends State<AddProduct> {
           child: Scaffold(
             appBar: AppBar(
               title: Text("Add Product"),
-              backgroundColor: Colors.white,
-              elevation: 1,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
             bottomNavigationBar: Padding(
               padding: EdgeInsets.all(8.0),
@@ -71,6 +72,9 @@ class _AddProductState extends State<AddProduct> {
                     ),
                   );
                 },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.secondary,
+                ),
                 child: Text('DONE'),
               ),
             ),
@@ -101,7 +105,9 @@ class _AddProductState extends State<AddProduct> {
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                           // hintText: 'Complete Name',
                         ),
                         validator: (value) {
@@ -118,7 +124,9 @@ class _AddProductState extends State<AddProduct> {
                         controller: _descriptionController,
                         maxLines: 7,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                           hintText: '100% Cotton; Soft-to-touch; Amazing Color',
                         ),
                       ),
@@ -127,7 +135,9 @@ class _AddProductState extends State<AddProduct> {
                       SizedBox(height: 4),
                       DropdownButtonFormField(
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                         value: _selectedCategory,
                         items:
@@ -182,7 +192,9 @@ class _AddProductState extends State<AddProduct> {
                               }
                             },
                             decoration: InputDecoration(
-                              border: OutlineInputBorder(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -208,7 +220,9 @@ class _AddProductState extends State<AddProduct> {
                               }
                             },
                             decoration: InputDecoration(
-                              border: OutlineInputBorder(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                               // hintText: 'Complete Name',
                             ),
                             validator: (value) {
@@ -486,14 +500,20 @@ class _AddProductState extends State<AddProduct> {
 
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.secondary),
+                          ),
                           onPressed:
                               productViewModel.productImages.length >= 10
                                   ? null
                                   : () {
                                     productViewModel.pickProductImages();
                                   },
-                          child: Text("Add More"),
+                          child: Text(
+                            "Add More",
+                            style: TextStyle(color: AppColors.secondary),
+                          ),
                         ),
                       ),
                     ],
@@ -519,7 +539,13 @@ class _AddProductState extends State<AddProduct> {
     Function(String) clearSizeOrColor,
   ) {
     if (!isEnabled) {
-      return TextButton(onPressed: onEnable, child: Text('Add $optionName'));
+      return TextButton(
+        onPressed: onEnable,
+        child: Text(
+          'Add $optionName',
+          style: TextStyle(color: AppColors.secondary),
+        ),
+      );
     }
 
     return Column(
@@ -555,6 +581,10 @@ class _AddProductState extends State<AddProduct> {
           children: [
             ...values.asMap().entries.map((entry) {
               return InputChip(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                backgroundColor: AppColors.secondary.withValues(alpha: 0.05),
                 label: Text(entry.value),
                 onDeleted: () => onRemove(entry.key),
               );
@@ -603,9 +633,9 @@ class _AddProductState extends State<AddProduct> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(color: Colors.black12, spreadRadius: 4, blurRadius: 10),
-          ],
+          // boxShadow: [
+          //   BoxShadow(color: Colors.black12, spreadRadius: 4, blurRadius: 10),
+          // ],
         ),
         child: DataTable(
           columnSpacing: 20,

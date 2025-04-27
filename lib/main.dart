@@ -1,3 +1,4 @@
+import 'package:clublly/utils/colors.dart';
 import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/department_view_model.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
@@ -28,7 +29,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PickupLocationViewModel()),
       ],
 
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Auth',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: AppColors.primary,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),

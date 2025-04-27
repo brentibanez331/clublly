@@ -36,6 +36,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
           title: Text(widget.organization.acronym),
           automaticallyImplyLeading: false,
           leading: Builder(

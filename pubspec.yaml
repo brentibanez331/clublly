@@ -74,6 +74,7 @@ flutter:
     - .env
     - assets/images/imgrandom_5.png
     - assets/images/login_bg.jpg
+    - assets/images/pickup.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
