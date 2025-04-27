@@ -27,11 +27,6 @@ class PickupLocationViewModel extends ChangeNotifier {
   }
 
   Future<void> fetchLocationsByOrganization(int organizationId) async {
-    if (_currentOrganizationId == organizationId &&
-        _pickupLocations.isNotEmpty) {
-      return;
-    }
-
     try {
       _isLoadingOrganizationLocations = true;
       _currentOrganizationId = organizationId;
@@ -40,6 +35,7 @@ class PickupLocationViewModel extends ChangeNotifier {
           .from('pickupLocations')
           .select('*, organizations(name)')
           .eq('organization_id', organizationId)
+          .filter('deleted_at', 'is', null)
           .order('address', ascending: true);
 
       log(response.toString());
@@ -54,6 +50,37 @@ class PickupLocationViewModel extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> updateLocation(PickupLocation pickupLocation) async {
+    try {
+      await supabase
+          .from('pickupLocations')
+          .update({
+            'address': pickupLocation.address,
+            'description': pickupLocation.description,
+          })
+          .eq('id', pickupLocation.id!);
+
+      await fetchLocationsByOrganization(_currentOrganizationId!);
+      notifyListeners();
+    } catch (error) {
+      log("Error updating pickup location: ${error}");
+    }
+  }
+
+  Future<void> softDeleteLocation(int pickupLocationId) async {
+    try {
+      await supabase
+          .from('pickupLocations')
+          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .eq('id', pickupLocationId);
+
+      await fetchLocationsByOrganization(_currentOrganizationId!);
+      notifyListeners();
+    } catch (error) {
+      log("Error deleting pickup location: ${error}");
     }
   }
 }
