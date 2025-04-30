@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:clublly/models/option_value.dart';
+import 'package:clublly/models/organization.dart';
 import 'package:clublly/models/product_image.dart';
 import 'package:clublly/models/product_variant.dart';
 import 'package:clublly/models/product_variant_data.dart';
@@ -25,6 +26,8 @@ class ProductViewModel extends ChangeNotifier {
   bool _isLoadingOrganizationProducts = false;
   int? _currentOrganizationId;
 
+  Product? _selectedProduct;
+  bool _isLoadingSelectedProduct = false;
   final ImagePicker _picker = ImagePicker();
 
   File? _thumbnail;
@@ -37,6 +40,8 @@ class ProductViewModel extends ChangeNotifier {
   List<Product> get products => _products;
   Product? get productToAdd => _productToAdd;
   List<Product> get organizationProducts => _organizationProducts;
+  Product? get selectedProduct => _selectedProduct;
+  bool get isLoadingSelectedProduct => _isLoadingSelectedProduct;
   bool get isLoadingAllProducts => _isLoadingAllProducts;
   bool get isLoadingOrganizationProducts => _isLoadingOrganizationProducts;
   String get errorMessage => _errorMessage;
@@ -117,9 +122,6 @@ class ProductViewModel extends ChangeNotifier {
     try {
       if (_productToAdd == null) return;
 
-      final user = supabase.auth.currentUser;
-      log('Current user: ${user?.id}');
-
       log("${_productToAdd!.toMap()}");
 
       // await supabase.from('products').insert(_productToAdd!.toMap());
@@ -149,6 +151,60 @@ class ProductViewModel extends ChangeNotifier {
       _resetProductForm();
     } catch (error) {
       log('Error adding product: ${error}');
+    }
+  }
+
+  Future<void> editProduct(Product product) async {
+    try {
+      log("${product.toMap()}");
+      log("EDITING");
+
+      // Update product
+      final data =
+          await supabase
+              .from('products')
+              .update(product.toMap())
+              .eq('id', product.id!)
+              .select();
+
+      log("DATA: $data");
+
+      await fetchSingleProduct(product.id!);
+      await fetchProductsByOrganization(product.organizationId);
+
+      notifyListeners();
+
+      // Delete old images
+      // if (product.organizationLogo != null) {
+      //   deleteThumbnail(product.organizationLogo!);
+      // }
+
+      log("${product.toMap()}");
+
+      // Process image uploads in parallel
+      // await Future.wait([
+      //   if (_thumbnail != null) uploadThumbnail(productId),
+      //   if (_productImages.isNotEmpty) uploadSupportingImages(productId),
+      // ]);
+    } catch (error) {
+      log("$error");
+    }
+  }
+
+  Future<void> softDeleteProduct(int productId) async {
+    try {
+      log("Performing soft delete on product");
+
+      await supabase
+          .from('products')
+          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .eq('id', productId);
+
+      await fetchProductsByOrganization(_currentOrganizationId!);
+      await fetchProducts();
+      notifyListeners();
+    } catch (error) {
+      log("Failed to perform soft deletion on product: ${error}");
     }
   }
 
@@ -258,6 +314,19 @@ class ProductViewModel extends ChangeNotifier {
     });
   }
 
+  Future<void> deleteThumbnail(String organizationLogo) async {
+    try {
+      await supabase.storage.from('products').remove([organizationLogo]);
+
+      await supabase
+          .from('productImages')
+          .delete()
+          .eq('image_path', organizationLogo);
+    } catch (e) {
+      log("Failed to delete image: $e");
+    }
+  }
+
   Future<void> uploadThumbnail(int productId) async {
     try {
       final uuid = Uuid().v4();
@@ -308,6 +377,19 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteSupportingImages(
+    List<String> additionalImages,
+    int productId,
+  ) async {
+    try {
+      await supabase.storage.from('products').remove(additionalImages);
+
+      await supabase.from('productImages').delete().eq('product_id', productId);
+    } catch (error) {
+      log("Failed to delete extra images: ${error}");
+    }
+  }
+
   Future<void> fetchProducts() async {
     try {
       _isLoadingAllProducts = true;
@@ -318,7 +400,7 @@ class ProductViewModel extends ChangeNotifier {
           .select('''
             *, 
             organizations(acronym, logo_path),
-            productImages!inner(id, image_path),
+            productImages!inner(id, image_path, is_thumbnail),
             productVariants(
               id,
               product_id,
@@ -333,9 +415,8 @@ class ProductViewModel extends ChangeNotifier {
             )
           ''')
           .eq('productImages.is_thumbnail', true)
+          .filter('deleted_at', 'is', null)
           .order('name');
-
-      log(response.toString());
 
       _products =
           (response as List).map((item) => Product.fromMap(item)).toList();
@@ -349,11 +430,6 @@ class ProductViewModel extends ChangeNotifier {
   }
 
   Future<void> fetchProductsByOrganization(int organizationId) async {
-    if (_currentOrganizationId == organizationId &&
-        _organizationProducts.isNotEmpty) {
-      return;
-    }
-
     try {
       _isLoadingOrganizationProducts = true;
       _currentOrganizationId = organizationId;
@@ -363,7 +439,7 @@ class ProductViewModel extends ChangeNotifier {
           .select('''
             *,
             organizations(name),
-            productImages!inner(id, image_path),
+            productImages!inner(id, image_path, is_thumbnail),
             productVariants(
               id,
               product_id,
@@ -381,7 +457,7 @@ class ProductViewModel extends ChangeNotifier {
             )
           ''')
           .eq('organization_id', organizationId)
-          .eq('productImages.is_thumbnail', true)
+          .filter('deleted_at', 'is', null)
           .order('name', ascending: true);
 
       _organizationProducts =
@@ -393,6 +469,92 @@ class ProductViewModel extends ChangeNotifier {
       log(_errorMessage);
     } finally {
       _isLoadingOrganizationProducts = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchSingleProduct(int productId) async {
+    try {
+      _isLoadingSelectedProduct = true;
+      notifyListeners();
+
+      final response = await supabase
+          .from('products')
+          .select('''
+            *,
+            organizations(*),
+            productImages!inner(id, image_path, is_thumbnail),
+            productVariants(
+              id,
+              product_id,
+              price,
+              stock_quantity,
+              productVariantOptionValues(
+                option_value_id,
+                optionValues(
+                  id,
+                  option_id,
+                  value,
+                  options(type)
+                )
+              )
+            )
+          ''')
+          .eq('id', productId);
+
+      if (response.isNotEmpty) {
+        _selectedProduct = Product.fromMap(response[0]);
+
+        final sizeValuesSet = <String>{}; // Use a Set to avoid duplicates
+        final colorValuesSet = <String>{}; // Use a Set to avoid duplicates
+        _variants.clear();
+
+        if (_selectedProduct!.productVariants != null) {
+          for (var variant in _selectedProduct!.productVariants!) {
+            String? size;
+            String? color;
+
+            for (var optionValue in variant.productVariantOptionValues!) {
+              final value = optionValue.optionValues.value;
+              final type = optionValue.optionValues.options!.type;
+
+              if (type == 'Size') {
+                sizeValuesSet.add(value);
+                size = value;
+              } else if (type == 'Color') {
+                colorValuesSet.add(value);
+                color = value;
+              }
+            }
+
+            final variantData = ProductVariantData(
+              id: variant.id,
+              size: size,
+              color: color,
+            );
+            variantData.priceController.text = variant.price.toString();
+            variantData.stockController.text = variant.stockQuantity.toString();
+            log(variantData.toMap().toString());
+
+            _variants.add(variantData);
+          }
+        }
+
+        _sizeValues = sizeValuesSet.toList();
+        _colorValues = colorValuesSet.toList();
+
+        _errorMessage = '';
+      } else {
+        _errorMessage = 'Product not found';
+        _selectedProduct = null;
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to fetch product: ${e.toString()}';
+      log(_errorMessage);
+      _selectedProduct = null;
+    } finally {
+      _isLoadingSelectedProduct = false;
+      _errorMessage = '';
       notifyListeners();
     }
   }
@@ -505,9 +667,10 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // void clearVariants() {
-  //   _sizes = [];
-  //   _colors = [];
-  //   notifyListeners();
-  // }
+  void clearVariants() {
+    _sizeValues = [];
+    _colorValues = [];
+    _variants = [];
+    notifyListeners();
+  }
 }
