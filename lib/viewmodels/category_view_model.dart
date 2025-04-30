@@ -10,7 +10,10 @@ class CategoryViewModel extends ChangeNotifier {
 
   Future<void> fetchCategories() async {
     try {
-      final data = await supabase.from('categories').select();
+      final data = await supabase
+          .from('categories')
+          .select()
+          .order("name", ascending: true);
 
       log(data.toString());
       categories =
