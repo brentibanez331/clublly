@@ -19,14 +19,30 @@ class OrganizationLocations extends StatefulWidget {
 
 class _OrganizationLocationsState extends State<OrganizationLocations> {
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PickupLocationViewModel>(
+        context,
+        listen: false,
+      ).fetchLocationsByOrganization(widget.organizationId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<PickupLocationViewModel>(
       builder: (context, pickupLocationViewModel, child) {
-        if (pickupLocationViewModel.pickupLocations.isEmpty) {
-          pickupLocationViewModel.fetchLocationsByOrganization(
-            widget.organizationId,
-          );
+        if (pickupLocationViewModel.isLoadingOrganizationLocations) {
+          return const Center(child: CircularProgressIndicator());
         }
+
+        if (pickupLocationViewModel.errorMessage.isNotEmpty) {
+          return Center(child: Text(pickupLocationViewModel.errorMessage));
+        }
+
+        final pickupLocations = pickupLocationViewModel.pickupLocations;
 
         return RefreshIndicator(
           onRefresh:
@@ -47,75 +63,104 @@ class _OrganizationLocationsState extends State<OrganizationLocations> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   ),
                   SizedBox(height: 12),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: pickupLocationViewModel.pickupLocations.length,
-                      itemBuilder: (context, index) {
-                        final pickupLocation =
-                            pickupLocationViewModel.pickupLocations[index];
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: InkWell(
-                            onTap: () {
-                              showEditLocation(pickupLocation);
-                            },
-                            onLongPress: () {
-                              showOptions(pickupLocation);
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.sizeOf(context).width * 0.65,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.location_on_outlined,
-                                              color: AppColors.secondary,
-                                            ),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              pickupLocation.address,
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(pickupLocation.description!),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: Icon(Icons.edit),
-                                  ),
-                                ],
+                  if (pickupLocations!.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              width: MediaQuery.sizeOf(context).width * 0.3,
+                              // height: 100,
+                              "assets/images/no_data.png",
+                            ),
+                            Text(
+                              "No locations added",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        );
-                      },
+                            Text(
+                              "Add one to start selling",
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            SizedBox(height: 130),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+
+                  if (pickupLocations.isNotEmpty)
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: pickupLocations!.length,
+                        itemBuilder: (context, index) {
+                          final pickupLocation = pickupLocations[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: InkWell(
+                              onTap: () {
+                                showEditLocation(pickupLocation);
+                              },
+                              onLongPress: () {
+                                showOptions(pickupLocation);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width:
+                                          MediaQuery.sizeOf(context).width *
+                                          0.65,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.location_on_outlined,
+                                                color: AppColors.secondary,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                pickupLocation.address,
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(pickupLocation.description!),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(Icons.edit),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),
