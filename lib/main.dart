@@ -2,6 +2,7 @@ import 'package:clublly/utils/colors.dart';
 import 'package:clublly/viewmodels/carts_view_model.dart';
 import 'package:clublly/viewmodels/category_view_model.dart';
 import 'package:clublly/viewmodels/department_view_model.dart';
+import 'package:clublly/viewmodels/order_view_model.dart';
 import 'package:clublly/viewmodels/organization_view_model.dart';
 import 'package:clublly/viewmodels/pickup_location_view_model.dart';
 import 'package:clublly/viewmodels/product_viewmodel.dart';
@@ -29,6 +30,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => PickupLocationViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
+        ChangeNotifierProvider(create: (_) => OrderViewModel()),
       ],
 
       child: const MyApp(),
