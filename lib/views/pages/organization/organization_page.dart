@@ -1,5 +1,6 @@
 import 'package:clublly/models/organization.dart';
 import 'package:clublly/models/product_image.dart';
+import 'package:clublly/utils/colors.dart';
 import 'package:clublly/views/dashboard.dart';
 import 'package:clublly/views/pages/organization/organization_home_page.dart';
 import 'package:clublly/views/pages/organization/organization_locations.dart';
@@ -61,15 +62,8 @@ class _OrganizationPageState extends State<OrganizationPage> {
         ),
         drawer: Drawer(
           child: Column(
-            // padding: EdgeInsets.zero,
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: const DrawerHeader(
-                  decoration: BoxDecoration(color: Colors.blue),
-                  child: Text('Drawer Header'),
-                ),
-              ),
+              SizedBox(height: 24),
               Expanded(
                 child: Column(
                   children: [
@@ -83,10 +77,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
                         ],
                       ),
                       selected: _selectedIndex == 0,
+                      selectedColor: AppColors.secondary,
                       onTap: () {
-                        // Update the state of the app
                         _onItemTapped(0);
-                        // Then close the drawer
                         Navigator.pop(context);
                       },
                     ),
@@ -99,10 +92,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
                         ],
                       ),
                       selected: _selectedIndex == 1,
+                      selectedColor: AppColors.secondary,
                       onTap: () {
-                        // Update the state of the app
                         _onItemTapped(1);
-                        // Then close the drawer
                         Navigator.pop(context);
                       },
                     ),
@@ -116,10 +108,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
                         ],
                       ),
                       selected: _selectedIndex == 2,
+                      selectedColor: AppColors.secondary,
                       onTap: () {
-                        // Update the state of the app
                         _onItemTapped(2);
-                        // Then close the drawer
                         Navigator.pop(context);
                       },
                     ),
@@ -132,11 +123,10 @@ class _OrganizationPageState extends State<OrganizationPage> {
                           const Text('Pickup Locations'),
                         ],
                       ),
+                      selectedColor: AppColors.secondary,
                       selected: _selectedIndex == 3,
                       onTap: () {
-                        // Update the state of the app
                         _onItemTapped(3);
-                        // Then close the drawer
                         Navigator.pop(context);
                       },
                     ),
@@ -151,7 +141,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     const Text('Return to Home'),
                   ],
                 ),
-                selected: _selectedIndex == 2,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
