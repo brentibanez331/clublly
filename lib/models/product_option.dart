@@ -1,5 +1,3 @@
-// IGNORE FOR NOW!!!
-
 class ProductOption {
   final int id;
   final int productId;
