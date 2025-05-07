@@ -40,6 +40,7 @@ class Carts {
       userId: map['user_id'],
       product: productObj,
       productId: map['product_id'],
+      productVariantId: productVariantObj?.id,
       productVariant: productVariantObj,
       quantity: map['quantity'],
       totalPrice: map['total_price'],

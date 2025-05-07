@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:clublly/main.dart';
 import 'package:clublly/utils/colors.dart';
 import 'package:clublly/viewmodels/carts_view_model.dart';
+import 'package:clublly/viewmodels/order_view_model.dart';
 import 'package:clublly/views/pages/order_page.dart';
+import 'package:clublly/views/pages/product_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -60,11 +62,27 @@ class _CartPageState extends State<CartPage> {
                           thumbnailUrl = null;
                         }
 
+                        String? logoUrl;
+                        if (cart.product!.organizationLogo != null) {
+                          logoUrl = supabase.storage
+                              .from('logos')
+                              .getPublicUrl(cart.product!.organizationLogo!);
+                        } else {
+                          logoUrl = null;
+                        }
+
                         return Padding(
                           padding: EdgeInsets.only(bottom: 16),
                           child: InkWell(
                             onTap: () {
-                              // Show order preview
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => ProductPreview(
+                                        productId: cart.productId,
+                                      ),
+                                ),
+                              );
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(
@@ -73,10 +91,63 @@ class _CartPageState extends State<CartPage> {
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
                                 children: [
+                                  Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.network(
+                                          logoUrl!,
+                                          width: 24,
+                                          height: 24,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (
+                                            context,
+                                            child,
+                                            loadingProgress,
+                                          ) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value:
+                                                    loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                        : null,
+                                              ),
+                                            );
+                                          },
+
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Container(
+                                              height: 100,
+                                              width: 100,
+                                              color: Colors.grey[300],
+                                              child: Icon(Icons.error),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        "${cart.product!.organizationAcronym}",
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8),
+
                                   Row(
                                     children: [
                                       ClipRRect(
